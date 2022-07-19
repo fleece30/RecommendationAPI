@@ -21,7 +21,7 @@ app.add_middleware(
 
 
 @app.get("/getrecommendations")
-def hello(name: str):
+def hello(tmdbId: int):
     metadata = pd.read_csv('Overviews.csv', low_memory=True)
 
     def convert_to_list(item):
@@ -57,15 +57,15 @@ def hello(name: str):
     cosine_sim2 = cosine_similarity(count_matrix, count_matrix)
 
     metadata = metadata.reset_index()
-    indices = pd.Series(metadata.index, index=metadata['title'])
+    indices = pd.Series(metadata.index, index=metadata['tmdbId'])
 
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
     indices = pd.Series(
-        metadata.index, index=metadata['title']).drop_duplicates()
+        metadata.index, index=metadata['tmdbId']).drop_duplicates()
 
-    def get_recommendations(title, cosine_sim=cosine_sim):
-        idx = indices[title]
+    def get_recommendations(tmdbId, cosine_sim=cosine_sim):
+        idx = indices[tmdbId]
         sim_scores = list(enumerate(cosine_sim[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
         sim_scores = sim_scores[1:11]
@@ -75,8 +75,8 @@ def hello(name: str):
                 movie_indices.append(i[0])
         return pd.Series(metadata['tmdbId'].iloc[movie_indices]).tolist()
 
-    overview_matches = get_recommendations(name)
-    cast_matches = get_recommendations(name, cosine_sim2)
+    overview_matches = get_recommendations(tmdbId)
+    cast_matches = get_recommendations(tmdbId, cosine_sim2)
 
     objects = []
     objects.append(overview_matches)
