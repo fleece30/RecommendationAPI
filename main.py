@@ -21,7 +21,7 @@ app.add_middleware(
 
 
 @app.get("/getrecommendations")
-def hello(tmdbId: int, largeData: bool):
+def hello(tmdbId: int, resultCount: int):
     metadata = pd.read_csv('Overviews.csv', low_memory=True)
 
     def convert_to_list(item):
@@ -68,7 +68,7 @@ def hello(tmdbId: int, largeData: bool):
         idx = indices[tmdbId]
         sim_scores = list(enumerate(cosine_sim[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[1:31] if largedata == True else sim_scores[1:11]
+        sim_scores = sim_scores[1:resultCount+1]
         movie_indices = []
         for i in sim_scores:
             if i[1] != 0:
