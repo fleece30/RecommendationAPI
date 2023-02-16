@@ -22,6 +22,7 @@ app.add_middleware(
 
 @app.get("/getrecommendations")
 def hello(tmdbId: int, resultCount: int = 10):
+    print(tmdbId)
     metadata = pd.read_csv('Overviews.csv', low_memory=True)
 
     def convert_to_list(item):
