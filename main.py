@@ -23,7 +23,7 @@ app.add_middleware(
 @app.get("/getrecommendations")
 def hello(tmdbId: int, resultCount: int = 10):
     print(tmdbId)
-    metadata = pd.read_csv('Book1.csv', low_memory=True)
+    metadata = pd.read_csv('Overviews.csv', low_memory=True)
     print(metadata)
     def convert_to_list(item):
         return item.split(",")
