@@ -61,7 +61,9 @@ def hello(tmdbId: int, resultCount: int = 10):
     indices = pd.Series(metadata.index, index=metadata['tmdbId'])
     print("Yo!4")
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
+    print("Yo!5")
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+    print("Yo!6")
     indices = pd.Series(
         metadata.index, index=metadata['tmdbId']).drop_duplicates()
     
