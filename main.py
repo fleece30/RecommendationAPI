@@ -82,5 +82,5 @@ def hello(tmdbId: int, resultCount: int = 10):
     objects = []
     objects.append(overview_matches)
     objects.append(cast_matches)
-
+    print(objects)
     return objects
