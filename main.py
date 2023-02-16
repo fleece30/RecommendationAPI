@@ -45,7 +45,7 @@ def hello(tmdbId: int, resultCount: int = 10):
     metadata['overview'] = metadata['overview'].fillna('')
 
     features = ['cast', 'director']
-
+    print("Yo!2")
     for feature in features:
         metadata[feature] = metadata[feature].apply(clean_data)
     metadata['cast'] = metadata['cast'].apply(convert_to_list)
@@ -54,12 +54,12 @@ def hello(tmdbId: int, resultCount: int = 10):
 
     count = CountVectorizer(stop_words='english')
     count_matrix = count.fit_transform(metadata['soup'])
-
+    print("Yo!3")
     cosine_sim2 = cosine_similarity(count_matrix, count_matrix)
 
     metadata = metadata.reset_index()
     indices = pd.Series(metadata.index, index=metadata['tmdbId'])
-
+    print("Yo!4")
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
     indices = pd.Series(
