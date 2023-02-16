@@ -40,7 +40,7 @@ def hello(tmdbId: int, resultCount: int = 10):
                 return str.lower(x.replace(" ", ""))
             else:
                 return ''
-
+    print("Yo!")
     tfidf = TfidfVectorizer(stop_words='english')
     metadata['overview'] = metadata['overview'].fillna('')
 
