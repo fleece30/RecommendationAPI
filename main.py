@@ -67,6 +67,7 @@ def hello(tmdbId: int, resultCount: int = 10):
     
     print(indices)
     print(cosine_sim)
+    print("Yo!5")
 
     def get_recommendations(tmdbId, cosine_sim=cosine_sim):
         idx = indices[tmdbId]
