@@ -64,9 +64,13 @@ def hello(tmdbId: int, resultCount: int = 10):
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
     indices = pd.Series(
         metadata.index, index=metadata['tmdbId']).drop_duplicates()
+    
+    print(indices)
+    print(cosine_sim)
 
     def get_recommendations(tmdbId, cosine_sim=cosine_sim):
         idx = indices[tmdbId]
+        print(idx)
         sim_scores = list(enumerate(cosine_sim[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
         sim_scores = sim_scores[1:resultCount+1]
@@ -79,6 +83,8 @@ def hello(tmdbId: int, resultCount: int = 10):
     overview_matches = get_recommendations(tmdbId)
     cast_matches = get_recommendations(tmdbId, cosine_sim2)
 
+    print(overview_matches)
+    print(cast_matches)
     objects = []
     objects.append(overview_matches)
     objects.append(cast_matches)
