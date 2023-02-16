@@ -22,9 +22,7 @@ app.add_middleware(
 
 @app.get("/getrecommendations")
 def hello(tmdbId: int, resultCount: int = 10):
-    print(tmdbId)
     metadata = pd.read_csv('Overviews.csv', low_memory=True)
-    print(metadata)
     def convert_to_list(item):
         return item.split(",")
 
@@ -40,12 +38,10 @@ def hello(tmdbId: int, resultCount: int = 10):
                 return str.lower(x.replace(" ", ""))
             else:
                 return ''
-    print("Yo!")
     tfidf = TfidfVectorizer(stop_words='english')
     metadata['overview'] = metadata['overview'].fillna('')
 
     features = ['cast', 'director']
-    print("Yo!2")
     for feature in features:
         metadata[feature] = metadata[feature].apply(clean_data)
     metadata['cast'] = metadata['cast'].apply(convert_to_list)
@@ -54,26 +50,17 @@ def hello(tmdbId: int, resultCount: int = 10):
 
     count = CountVectorizer(stop_words='english')
     count_matrix = count.fit_transform(metadata['soup'])
-    print("Yo!3")
     cosine_sim2 = cosine_similarity(count_matrix, count_matrix)
 
     metadata = metadata.reset_index()
     indices = pd.Series(metadata.index, index=metadata['tmdbId'])
-    print("Yo!4")
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
-    print("Yo!5")
-    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-    print(cosine_sim)
-    print("Yo!6")
+    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)  
     indices = pd.Series(
         metadata.index, index=metadata['tmdbId']).drop_duplicates()
-    
-    print(indices)
-    print("Yo!5")
 
     def get_recommendations(tmdbId, cosine_sim=cosine_sim):
         idx = indices[tmdbId]
-        print(idx)
         sim_scores = list(enumerate(cosine_sim[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
         sim_scores = sim_scores[1:resultCount+1]
@@ -85,11 +72,7 @@ def hello(tmdbId: int, resultCount: int = 10):
 
     overview_matches = get_recommendations(tmdbId)
     cast_matches = get_recommendations(tmdbId, cosine_sim2)
-
-    print(overview_matches)
-    print(cast_matches)
     objects = []
     objects.append(overview_matches)
     objects.append(cast_matches)
-    print(objects)
     return objects
