@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+import numpy as np
+import json
+from scipy.sparse import save_npz, load_npz, csr_matrix, vstack
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
+from config import OVERVIEWS_CSV_PATH, COSINE_SIM2_PATH, INDICES_PATH
+
 app = FastAPI()
 
 origins = [
@@ -19,10 +24,23 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+num_parts = 2  # Number of parts to split the file into
+parts = []
+for i in range(num_parts):
+    part = load_npz(f'data/cosine_sim_part_{i+1}.npz')
+    parts.append(part)
 
-@app.get("/getrecommendations")
-def hello(tmdbId: int, resultCount: int = 10):
-    metadata = pd.read_csv('Overviews.csv', low_memory=True)
+# Combine the parts back into a single matrix
+cosine_sim = vstack(parts)
+cosine_sim2 = load_npz(COSINE_SIM2_PATH)
+
+with open(INDICES_PATH, "r") as txt_file:
+    indices = pd.Series(json.load(txt_file))
+
+
+@app.get("/createsimilaritymatrices")
+def hello():
+    metadata = pd.read_csv(OVERVIEWS_CSV_PATH, low_memory=True)
     def convert_to_list(item):
         return item.split(",")
 
@@ -56,12 +74,28 @@ def hello(tmdbId: int, resultCount: int = 10):
     indices = pd.Series(metadata.index, index=metadata['tmdbId'])
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)  
+
+    row_indices = np.array_split(np.arange(cosine_sim.shape[0]), num_parts)
+
+    for i, rows in enumerate(row_indices):
+        part = cosine_sim[rows]
+        save_npz(f'data/cosine_sim_part_{i+1}.npz', csr_matrix(part))
+
     indices = pd.Series(
         metadata.index, index=metadata['tmdbId']).drop_duplicates()
 
+    save_npz(COSINE_SIM2_PATH, csr_matrix(cosine_sim2))
+    with open(INDICES_PATH, "w") as txt_file:
+        json.dump(indices.to_dict(), txt_file)
+
+    return []
+
+@app.get("/getrecommendations")
+def hello(tmdbId: int, resultCount: int = 10):
+    metadata = pd.read_csv(OVERVIEWS_CSV_PATH, low_memory=True)
     def get_recommendations(tmdbId, cosine_sim=cosine_sim):
         idx = indices[tmdbId]
-        sim_scores = list(enumerate(cosine_sim[idx]))
+        sim_scores = list(enumerate(cosine_sim[idx].toarray().flatten()))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
         sim_scores = sim_scores[1:resultCount+1]
         movie_indices = []
