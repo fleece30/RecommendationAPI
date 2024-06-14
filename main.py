@@ -13,6 +13,8 @@ from config import OVERVIEWS_CSV_PATH, COSINE_SIM2_PATH, INDICES_PATH
 app = FastAPI()
 
 origins = [
+    "https://www.spookydeck.com/",
+    "phenomenal-gumdrop-ed8e23.netlify.app",
     "http://localhost:3000"
 ]
 
