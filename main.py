@@ -110,4 +110,7 @@ def hello(tmdbId: int, resultCount: int = 10):
     movie_indices = [i[0] for i in sim_scores if i[1] != 0]
     cast_matches = metadata['tmdbId'].iloc[movie_indices].tolist()
 
-    return {"overview_matches": overview_matches, "cast_matches": cast_matches}
+    objects = []
+    objects.append(overview_matches)
+    objects.append(cast_matches)
+    return objects
