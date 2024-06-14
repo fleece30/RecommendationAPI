@@ -26,6 +26,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+metadata = pd.read_csv(OVERVIEWS_CSV_PATH, low_memory=True)
 num_parts = 2  # Number of parts to split the file into
 parts = []
 for i in range(num_parts):
@@ -42,7 +43,7 @@ with open(INDICES_PATH, "r") as txt_file:
 
 @app.get("/createsimilaritymatrices")
 def hello():
-    metadata = pd.read_csv(OVERVIEWS_CSV_PATH, low_memory=True)
+    global cosine_sim, cosine_sim2, indices
     def convert_to_list(item):
         return item.split(",")
 
@@ -94,21 +95,19 @@ def hello():
 
 @app.get("/getrecommendations")
 def hello(tmdbId: int, resultCount: int = 10):
-    metadata = pd.read_csv(OVERVIEWS_CSV_PATH, low_memory=True)
-    def get_recommendations(tmdbId, cosine_sim=cosine_sim):
-        idx = indices[tmdbId]
-        sim_scores = list(enumerate(cosine_sim[idx].toarray().flatten()))
-        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[1:resultCount+1]
-        movie_indices = []
-        for i in sim_scores:
-            if i[1] != 0:
-                movie_indices.append(i[0])
-        return pd.Series(metadata['tmdbId'].iloc[movie_indices]).tolist()
+    idx = indices[tmdbId]
+    sim_scores = list(enumerate(cosine_sim[idx].toarray().flatten()))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:resultCount+1]
 
-    overview_matches = get_recommendations(tmdbId)
-    cast_matches = get_recommendations(tmdbId, cosine_sim2)
-    objects = []
-    objects.append(overview_matches)
-    objects.append(cast_matches)
-    return objects
+    movie_indices = [i[0] for i in sim_scores if i[1] != 0]
+    overview_matches = metadata['tmdbId'].iloc[movie_indices].tolist()
+
+    sim_scores = list(enumerate(cosine_sim2[idx].toarray().flatten()))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:resultCount+1]
+    
+    movie_indices = [i[0] for i in sim_scores if i[1] != 0]
+    cast_matches = metadata['tmdbId'].iloc[movie_indices].tolist()
+
+    return {"overview_matches": overview_matches, "cast_matches": cast_matches}
